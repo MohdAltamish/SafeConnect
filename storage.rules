@@ -1,0 +1,21 @@
+// Storage Security Rules — SafeConnect
+// Per Rules.md §2: deny public read/write
+// Evidence files are only accessible via signed URLs generated server-side
+// after an authority's access is verified
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Evidence uploads — deny all direct client access
+    // Files are uploaded via server-side API routes (Admin SDK)
+    // and accessed via short-lived signed URLs only
+    match /evidence/{reportId}/{fileName} {
+      allow read, write: if false;
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

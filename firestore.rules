@@ -1,0 +1,49 @@
+// Firestore Security Rules — SafeConnect
+// Per Rules.md §2: reports/messages locked to if false (client SDK never touches directly)
+// All student-facing access goes through server-side API routes using Admin SDK
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── reports collection ──
+    // Client SDK access DENIED entirely.
+    // All reads/writes happen through server-side API routes using the Admin SDK,
+    // which bypasses these rules but enforces token-hash checks in application code.
+    match /reports/{reportId} {
+      allow read, write: if false;
+
+      // ── messages subcollection ──
+      // Same as reports — server-only access
+      match /messages/{messageId} {
+        allow read, write: if false;
+      }
+    }
+
+    // ── authorities collection ──
+    // Readable by: the authority themselves, or a superadmin
+    // Writable by: superadmin only
+    match /authorities/{uid} {
+      allow read: if request.auth.uid == uid
+                  || (request.auth != null
+                      && exists(/databases/$(database)/documents/authorities/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/authorities/$(request.auth.uid)).data.role == 'superadmin');
+      allow write: if request.auth != null
+                   && exists(/databases/$(database)/documents/authorities/$(request.auth.uid))
+                   && get(/databases/$(database)/documents/authorities/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // ── auditLogs collection ──
+    // Readable by authenticated authorities (for accountability)
+    // Writable only by Cloud Functions / server routes (Admin SDK bypasses rules)
+    match /auditLogs/{logId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ── Deny everything else ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
