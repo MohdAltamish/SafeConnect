@@ -165,3 +165,161 @@ export const POLICY_SECTIONS = [
     description: "The complainant has the right to be accompanied by a representative during inquiry proceedings.",
   },
 ] as const;
+
+export interface OtherCellMember {
+  sNo: number;
+  name: string;
+  designation: string;
+  position: string;
+  rollNumber?: string;
+  isExternal?: boolean;
+}
+
+export interface OtherCellInfo {
+  name: string;
+  shortName: string;
+  email: string;
+  clause: string;
+  description: string;
+  members: OtherCellMember[];
+}
+
+export const OTHER_GLBITM_CELLS: OtherCellInfo[] = [
+  {
+    name: "Student Grievance Redressal Committee (SGRC)",
+    shortName: "SGRC",
+    email: "stugc@glbitm.ac.in",
+    clause: "Policy §1.1.3",
+    description: "Formed to address student academic, institutional, and general campus grievances.",
+    members: [
+      {
+        sNo: 1,
+        name: "Prof. (Dr.) Manas Kumar Mishra",
+        designation: "Director",
+        position: "Chairperson",
+      },
+      {
+        sNo: 2,
+        name: "Dr. Mahaveer Singh Naruka",
+        designation: "Professor, Deptt. of EEE & DSW",
+        position: "Convener",
+      },
+      {
+        sNo: 3,
+        name: "Dr. Nitin Tyagi",
+        designation: "Professor, Deptt. of CSE",
+        position: "Member",
+      },
+      {
+        sNo: 4,
+        name: "Dr. Pankaj Goel",
+        designation: "Professor, Deptt. of ASH",
+        position: "Member",
+      },
+      {
+        sNo: 5,
+        name: "Dr. Upasana Dohare",
+        designation: "Associate Professor, Deptt. of MCA",
+        position: "Member",
+      },
+      {
+        sNo: 6,
+        name: "Dr. Manjeet Kumar",
+        designation: "Associate Professor, Deptt. of MBA",
+        position: "Member",
+      },
+      {
+        sNo: 7,
+        name: "Mr. Deepanshu Gupta",
+        designation: "Student B.Tech. 4th Year CSAI",
+        position: "Member",
+        rollNumber: "2201921520057",
+      },
+    ],
+  },
+  {
+    name: "SC / ST / OBC / Minority Cell (Caste-Based Discrimination Prevention)",
+    shortName: "SC/ST/OBC/Minority Cell",
+    email: "disgc@glbitm.ac.in",
+    clause: "Policy §1.4.1",
+    description: "Ensures inclusion, non-discrimination, scholarship awareness, and support for SC/ST/OBC/Minority community members.",
+    members: [
+      {
+        sNo: 1,
+        name: "Prof. (Dr.) Manas Kumar Mishra",
+        designation: "Director",
+        position: "Chairperson",
+      },
+      {
+        sNo: 2,
+        name: "Dr. Manvinder Singh",
+        designation: "Professor, Dept. of ASH",
+        position: "Convener",
+      },
+      {
+        sNo: 3,
+        name: "Dr. Dharmender Nishad",
+        designation: "Assistant Professor, Dept. of ECE",
+        position: "Member",
+      },
+      {
+        sNo: 4,
+        name: "Dr. Vimal Yadav",
+        designation: "Assistant Professor, Dept. of ASH",
+        position: "Member",
+      },
+      {
+        sNo: 5,
+        name: "Ms. Deepti Dohare",
+        designation: "Assistant Professor, Dept. of CE",
+        position: "Member",
+      },
+      {
+        sNo: 6,
+        name: "Dr. Afreen Anjum",
+        designation: "Assistant Professor, Dept. of ASH",
+        position: "Member",
+      },
+    ],
+  },
+  {
+    name: "Faculty and Staff Grievance Cell",
+    shortName: "FSGC",
+    email: "facgc@glbitm.ac.in",
+    clause: "Policy §1.1.4",
+    description: "Dedicated to addressing workplace, administrative, and service-related grievances for teaching and non-teaching staff.",
+    members: [
+      {
+        sNo: 1,
+        name: "Prof. (Dr.) Manas Kumar Mishra",
+        designation: "Director",
+        position: "Chairperson",
+      },
+      {
+        sNo: 2,
+        name: "Dr. Satyendra Sharma",
+        designation: "HOD, ECE",
+        position: "Convener",
+      },
+      {
+        sNo: 3,
+        name: "Shri Sunil Dutt",
+        designation: "Registrar",
+        position: "Member",
+      },
+      {
+        sNo: 4,
+        name: "Dr. Pramod Kumar Srivastava",
+        designation: "Assistant Professor & Dean Student’s Welfare, Rajkiya Engineering College, Azamgarh",
+        position: "Member (External)",
+        isExternal: true,
+      },
+      {
+        sNo: 5,
+        name: "University Nominee",
+        designation: "Communicated to the University for the nominee name (Nominee Name yet not received)",
+        position: "Member",
+      },
+    ],
+  },
+];

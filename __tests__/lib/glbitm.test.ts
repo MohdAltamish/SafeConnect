@@ -6,6 +6,7 @@ import {
   POLICY_TIMELINES,
   POLICY_PROTECTIONS,
   STATUTORY_COMMITTEES,
+  OTHER_GLBITM_CELLS,
 } from '@/lib/constants/glbitm';
 
 describe('GLBITM Constants & Data Integrity', () => {
@@ -59,5 +60,27 @@ describe('GLBITM Constants & Data Integrity', () => {
     expect(POLICY_TIMELINES.quorum).toContain('3 members');
     expect(POLICY_PROTECTIONS.protectionAgainstVictimization).toContain('Policy §1.2.7');
     expect(STATUTORY_COMMITTEES).toHaveLength(3);
+  });
+
+  it('should maintain verified reference directories for other grievance cells', () => {
+    expect(OTHER_GLBITM_CELLS).toHaveLength(3);
+
+    const sgrc = OTHER_GLBITM_CELLS.find((c) => c.shortName === 'SGRC');
+    expect(sgrc?.email).toBe('stugc@glbitm.ac.in');
+    expect(sgrc?.members).toHaveLength(7);
+    expect(sgrc?.members.find((m) => m.position === 'Chairperson')?.name).toContain('Manas Kumar Mishra');
+    expect(sgrc?.members.find((m) => m.position === 'Convener')?.name).toContain('Mahaveer Singh Naruka');
+    expect(sgrc?.members.find((m) => m.rollNumber === '2201921520057')?.name).toContain('Deepanshu Gupta');
+
+    const casteCell = OTHER_GLBITM_CELLS.find((c) => c.shortName.includes('SC/ST'));
+    expect(casteCell?.email).toBe('disgc@glbitm.ac.in');
+    expect(casteCell?.members).toHaveLength(6);
+    expect(casteCell?.members.find((m) => m.position === 'Convener')?.name).toContain('Manvinder Singh');
+
+    const facultyCell = OTHER_GLBITM_CELLS.find((c) => c.shortName === 'FSGC');
+    expect(facultyCell?.email).toBe('facgc@glbitm.ac.in');
+    expect(facultyCell?.members).toHaveLength(5);
+    expect(facultyCell?.members.find((m) => m.position === 'Convener')?.name).toContain('Satyendra Sharma');
+    expect(facultyCell?.members.some((m) => m.isExternal)).toBe(true);
   });
 });

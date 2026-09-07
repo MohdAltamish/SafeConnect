@@ -15,6 +15,7 @@ import {
   Building2,
   Clock,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 import {
   GLBITM_INFO,
@@ -22,6 +23,7 @@ import {
   POLICY_TIMELINES,
   POLICY_PROTECTIONS,
   SEXUAL_HARASSMENT_DEFINITION,
+  OTHER_GLBITM_CELLS,
 } from '@/lib/constants/glbitm';
 
 export const metadata = {
@@ -275,24 +277,85 @@ export default function GrievancePolicyPage() {
           </Card>
         </section>
 
-        {/* Section 5: Other Statutory Committees */}
+        {/* Section 5: Other Institutional Grievance Redressal Cells (Reference Directory) */}
         <section className="mb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card padding="md" className="border-border">
-              <h3 className="text-sm font-bold text-text-primary mb-1">
-                Anti-Ragging Committee (§1.3.1)
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Oversees and advises campus community to preserve a culture devoid of ragging. Regularly inspects hostels, buses, canteens, and classrooms.
-              </p>
-            </Card>
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-text-primary mb-1">
+              Other Institutional Grievance Cells (Reference Directory)
+            </h2>
+            <p className="text-xs text-text-muted leading-relaxed">
+              SafeConnect is specifically designed as an anonymous, confidential reporting shield for{' '}
+              <strong className="text-text-primary font-medium">Women / Internal Committee (IC)</strong> cases under AICTE 2016 regulations. For other academic, faculty, or community matters, GLBITM maintains the following dedicated committees:
+            </p>
+          </div>
 
-            <Card padding="md" className="border-border">
-              <h3 className="text-sm font-bold text-text-primary mb-1">
-                SC / ST / OBC / Minority Cell (§1.4.1)
+          <div className="space-y-4">
+            {OTHER_GLBITM_CELLS.map((cell, idx) => (
+              <Card key={idx} padding="md" className="border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-border/80">
+                  <div>
+                    <span className="text-[10px] font-bold text-secondary uppercase tracking-wider block">
+                      {cell.clause} · {cell.shortName}
+                    </span>
+                    <h3 className="text-sm font-bold text-text-primary mt-0.5">
+                      {cell.name}
+                    </h3>
+                  </div>
+                  <a
+                    href={`mailto:${cell.email}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-surface-tint border border-border text-xs font-semibold text-primary hover:bg-primary/5 transition-colors self-start sm:self-auto"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{cell.email}</span>
+                  </a>
+                </div>
+
+                <p className="text-xs text-text-muted mb-3 leading-relaxed">
+                  {cell.description}
+                </p>
+
+                {/* Members list */}
+                <div className="bg-surface-tint/60 rounded-xl p-3 border border-border/70">
+                  <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-wider mb-2">
+                    Committee Composition ({cell.members.length} Members)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {cell.members.map((m) => (
+                      <div
+                        key={m.sNo}
+                        className="flex items-start gap-2 bg-surface p-2 rounded-lg border border-border/60"
+                      >
+                        <span className="w-4 h-4 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                          {m.sNo}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <strong className="text-[12px] font-semibold text-text-primary truncate">
+                              {m.name}
+                            </strong>
+                            <span className="text-[10px] text-secondary font-medium uppercase px-1.5 py-0.2 bg-secondary/5 rounded border border-secondary/20 flex-shrink-0">
+                              {m.position}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-text-muted truncate">
+                            {m.designation}
+                            {m.rollNumber && ` (Roll: ${m.rollNumber})`}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+            {/* Anti-Ragging Committee Note */}
+            <Card padding="md" className="border-border bg-surface-tint/40">
+              <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider mb-1">
+                Policy §1.3.1 · Anti-Ragging Committee
               </h3>
               <p className="text-xs text-text-muted leading-relaxed">
-                Consisting of five members (including at least two SC/ST and one woman member), this cell ensures inclusion, awareness of central/state scholarships, and protection against discrimination.
+                Oversees and advises the campus community to preserve a culture strictly devoid of ragging. Routinely inspects hostels, buses, canteens, and classrooms. Reports of ragging can be submitted anonymously through SafeConnect or via the National Helpline (1800-180-5522).
               </p>
             </Card>
           </div>
