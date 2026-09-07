@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { reportSchema } from '@/lib/validators/reportSchema';
-import { ArrowLeft, ArrowRight, Send, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Send, Loader2, Shield } from 'lucide-react';
 
 const STEP_LABELS = ['Category', 'Details', 'Evidence', 'Review'];
 const TOTAL_STEPS = 4;
@@ -80,7 +80,7 @@ export function ReportForm() {
 
     if (!result.success) {
       const zodErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         if (err.path[0]) {
           zodErrors[err.path[0].toString()] = err.message;
         }
@@ -128,18 +128,36 @@ export function ReportForm() {
       <Card padding="lg">
         {/* Step 1: Category */}
         {step === 0 && (
-          <CategorySelector
-            value={formData.category}
-            onChange={(category) => {
-              setFormData((prev) => ({ ...prev, category }));
-              setErrors((prev) => {
-                const next = { ...prev };
-                delete next.category;
-                return next;
-              });
-            }}
-            error={errors.category}
-          />
+          <div className="flex flex-col gap-4">
+            <CategorySelector
+              value={formData.category}
+              onChange={(category) => {
+                setFormData((prev) => ({ ...prev, category }));
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.category;
+                  return next;
+                });
+              }}
+              error={errors.category}
+            />
+
+            {formData.category === 'SEXUAL_HARASSMENT' && (
+              <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 text-xs text-text-primary">
+                <div className="flex items-start gap-2.5">
+                  <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="text-primary font-semibold block mb-0.5">
+                      GLBITM Internal Committee (IC) / Women Grievance Cell
+                    </strong>
+                    <p className="text-text-muted leading-relaxed">
+                      This incident will be routed directly to the GLBITM Internal Committee (Presided over by Dr. Rashmi Mishra) formed under AICTE Regulations 2016. Complete protection against victimization is guaranteed by GLBITM Grievance Policy §1.2.7.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Step 2: Details */}
@@ -223,6 +241,26 @@ export function ReportForm() {
                 <p className="text-text-primary font-medium">
                   {formData.category ? CATEGORY_LABELS[formData.category] : '—'}
                 </p>
+              </div>
+
+              <div className="bg-surface-tint rounded-lg p-4 border-l-4 border-primary">
+                <p className="text-xs text-text-muted uppercase tracking-wide mb-1">Routed Authority</p>
+                <p className="text-text-primary font-medium text-sm">
+                  {formData.category === 'SEXUAL_HARASSMENT'
+                    ? "GLBITM Internal Committee (IC) / Women's Grievance Cell"
+                    : formData.category === 'RAGGING'
+                    ? 'Anti-Ragging Committee'
+                    : formData.category === 'HOSTEL_ISSUE'
+                    ? 'Hostel Warden'
+                    : formData.category === 'OTHER'
+                    ? 'Public Relations / General Cell'
+                    : 'Discipline Committee'}
+                </p>
+                {formData.category === 'SEXUAL_HARASSMENT' && (
+                  <p className="text-[11px] text-text-muted mt-1 leading-relaxed">
+                    Meeting convened within 1 week of receipt. Protected under Policy §1.2.7 against victimization.
+                  </p>
+                )}
               </div>
 
               <div className="bg-surface-tint rounded-lg p-4">

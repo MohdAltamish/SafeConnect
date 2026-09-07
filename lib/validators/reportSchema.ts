@@ -9,13 +9,10 @@ const categoryValues = Object.values(REPORT_CATEGORY) as [string, ...string[]];
 
 export const reportSchema = z.object({
   category: z.enum(categoryValues, {
-    required_error: 'Please select a category',
-    invalid_type_error: 'Please select a valid category',
+    message: 'Please select a valid category',
   }),
   description: z
-    .string({
-      required_error: 'Please describe the incident',
-    })
+    .string()
     .min(20, 'A few more details will help the team act on this — please write at least 20 characters')
     .max(5000, 'Description is too long — please keep it under 5000 characters'),
   location: z

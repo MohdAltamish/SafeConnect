@@ -16,6 +16,7 @@ export const REPORT_CATEGORY = {
 export type ReportCategory = (typeof REPORT_CATEGORY)[keyof typeof REPORT_CATEGORY];
 
 export const DEPARTMENT = {
+  INTERNAL_COMMITTEE: 'INTERNAL_COMMITTEE',
   WARDEN: 'WARDEN',
   DISCIPLINE_COMMITTEE: 'DISCIPLINE_COMMITTEE',
   ANTI_RAGGING_CELL: 'ANTI_RAGGING_CELL',
@@ -68,9 +69,10 @@ export const CATEGORY_LABELS: Record<ReportCategory, string> = {
 };
 
 export const DEPARTMENT_LABELS: Record<Department, string> = {
+  INTERNAL_COMMITTEE: "Internal Committee (IC) / Women's Grievance Cell",
   WARDEN: 'Warden',
   DISCIPLINE_COMMITTEE: 'Discipline Committee',
-  ANTI_RAGGING_CELL: 'Anti-Ragging / ICC Cell',
+  ANTI_RAGGING_CELL: 'Anti-Ragging Committee',
   PR_CELL: 'PR Cell',
 };
 

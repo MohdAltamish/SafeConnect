@@ -13,6 +13,8 @@ import { type ReportCategory, type Department, REPORT_CATEGORY, DEPARTMENT } fro
 export function routeReport(category: ReportCategory): Department {
   switch (category) {
     case REPORT_CATEGORY.SEXUAL_HARASSMENT:
+      return DEPARTMENT.INTERNAL_COMMITTEE;
+
     case REPORT_CATEGORY.RAGGING:
       return DEPARTMENT.ANTI_RAGGING_CELL;
 
