@@ -103,6 +103,9 @@ export interface Report {
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
   closedAt: string | null; // ISO string
+  closureNote?: string | null;
+  quorumMembers?: string[]; // UIDs or names of attending committee members
+  piiSanitized?: boolean;
 }
 
 // Architecture.md §5.2 — reports/{reportId}/messages subcollection
@@ -112,6 +115,41 @@ export interface Message {
   senderRole: SenderRole;
   text: string;
   createdAt: string; // ISO string
+}
+
+// Internal committee notes (confidential to authorities)
+export interface CommitteeNote {
+  id: string;
+  authorUid: string;
+  authorName: string;
+  department: Department;
+  noteText: string;
+  isFormalMinute: boolean;
+  createdAt: string; // ISO string
+}
+
+// Case resolution record (GLBITM Grievance Policy §1.2.6)
+export interface CaseResolution {
+  resolvedByUid: string;
+  actionSummary: string;
+  quorumMembers: string[]; // Minimum 3 attending members required
+  statutoryOutcome: 'SUBMITTED_TO_DIRECTOR' | 'DISMISSED_NO_FOUNDATION' | 'MUTUAL_RESOLUTION' | 'POLICE_ESCALATION';
+  resolvedAt: string; // ISO string
+  sanitizedPdfUrl?: string;
+}
+
+// System configuration document (stored at system/config)
+export interface SystemConfig {
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  rateLimitPerMinute: number;
+  readOnlyMode: boolean;
+  alertBanner?: {
+    enabled: boolean;
+    text: string;
+    level: 'info' | 'warning' | 'urgent';
+  };
+  lastHealthCheck: string; // ISO string
 }
 
 // Architecture.md §5.3 — authorities collection
@@ -131,6 +169,7 @@ export interface AuditLog {
   action: string;
   performedByUid: string;
   reportId: string;
+  details?: Record<string, unknown>;
   timestamp: string; // ISO string
 }
 
@@ -160,3 +199,16 @@ export interface SendMessageRequest {
   text: string;
   senderRole: SenderRole;
 }
+
+export interface UpdateStatusRequest {
+  status: ReportStatus;
+  severity?: Severity | null;
+  closureNote?: string;
+  quorumMembers?: string[];
+}
+
+export interface CreateNoteRequest {
+  noteText: string;
+  isFormalMinute?: boolean;
+}
+
