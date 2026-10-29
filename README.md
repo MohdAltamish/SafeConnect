@@ -99,8 +99,9 @@ graph TD
   - Direct links to official portals, email, and PDF policies.
 - **Institutional Grievance Policy Guide (`/grievance-policy`)**:
   - Full interactive breakdown of the 7-page approved BOG policy, statutory committees, evaluation criteria, and redressal workflows.
-- **Authority Administration (`/admin`)**:
+- **Authority Administration & Developer Panel (`/admin`)**:
   - Case review dashboard, status lifecycle management, internal notes, and tamper-evident audit logging.
+  - Complete operations guide & developer emergency playbook: [ADMIN_AND_COMMITTEE_DASHBOARD_GUIDE.md](file:///Users/mohdaltamish/Developer/SafeConnect/safeconnect/ADMIN_AND_COMMITTEE_DASHBOARD_GUIDE.md).
 
 ---
 

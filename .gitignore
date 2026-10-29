@@ -24,6 +24,12 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firebase-debug.log*
+*firebase-adminsdk*.json
+
+# uploads
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 # local env files
 .env*.local
