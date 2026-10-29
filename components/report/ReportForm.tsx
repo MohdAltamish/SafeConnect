@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { reportSchema } from '@/lib/validators/reportSchema';
-import { ArrowLeft, ArrowRight, Send, Loader2, Shield } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Send, Loader2, Shield, UploadCloud, FileText, Trash2, Paperclip, AlertCircle } from 'lucide-react';
 
 const STEP_LABELS = ['Category', 'Details', 'Evidence', 'Review'];
 const TOTAL_STEPS = 4;
@@ -39,6 +39,65 @@ export function ReportForm() {
     incidentDate: '',
     evidenceUrls: [],
   });
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string; size: number }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (formData.evidenceUrls.length + files.length > 3) {
+      setUploadError('You can attach a maximum of 3 files.');
+      return;
+    }
+
+    setUploadError(null);
+    setIsUploading(true);
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadError(`"${file.name}" exceeds the 5MB size limit.`);
+        continue;
+      }
+
+      const body = new FormData();
+      body.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Upload failed');
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          evidenceUrls: [...prev.evidenceUrls, data.url],
+        }));
+        setUploadedFiles((prev) => [
+          ...prev,
+          { url: data.url, name: file.name, size: file.size },
+        ]);
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      }
+    }
+    setIsUploading(false);
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      evidenceUrls: prev.evidenceUrls.filter((_, i) => i !== index),
+    }));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const validateStep = (currentStep: number): boolean => {
     const newErrors: Record<string, string> = {};
@@ -209,18 +268,89 @@ export function ReportForm() {
                 Attach evidence (optional)
               </h3>
               <p className="text-xs text-text-muted mb-4">
-                You can attach up to 3 files (images or PDF, max 5MB each). This step is
+                You can attach up to 3 files (JPEG, PNG, WEBP, or PDF, max 5MB each). This step is
                 optional — your report is valid without evidence.
               </p>
             </div>
-            <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-              <p className="text-text-muted text-sm">
-                Evidence upload will be available once Firebase Storage is configured.
-              </p>
-              <p className="text-text-muted text-xs mt-2">
-                You can skip this step for now.
-              </p>
-            </div>
+
+            {uploadError && (
+              <div className="p-3 rounded-xl bg-error-50 border border-error/20 flex items-start gap-2 text-xs text-error">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {/* Upload Area */}
+            {formData.evidenceUrls.length < 3 && (
+              <label className="border-2 border-dashed border-border hover:border-primary rounded-2xl p-8 text-center cursor-pointer bg-surface-tint/30 hover:bg-surface-tint/60 transition-colors flex flex-col items-center justify-center gap-2 group">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                  className="hidden"
+                />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  {isUploading ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <UploadCloud className="w-6 h-6" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">
+                    {isUploading ? 'Encrypting & Uploading…' : 'Click or drag files to upload'}
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">
+                    Images or PDF documents (max 5MB each, up to 3 files)
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 mt-1">
+                  <Shield className="w-3 h-3" /> EXIF & Metadata Stripped for Anonymity
+                </div>
+              </label>
+            )}
+
+            {/* Uploaded Files List */}
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-semibold text-text-secondary block">
+                  Attached Evidence ({uploadedFiles.length} / 3)
+                </span>
+                <div className="divide-y divide-border/60 border border-border rounded-xl overflow-hidden bg-surface">
+                  {uploadedFiles.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 flex items-center justify-between text-xs gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-text-primary truncate">
+                            {file.name}
+                          </p>
+                          <span className="text-[10px] text-text-muted">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB • Secured
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(idx)}
+                        className="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error-50 transition-colors"
+                        title="Remove file"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -287,6 +417,21 @@ export function ReportForm() {
                       year: 'numeric',
                     })}
                   </p>
+                </div>
+              )}
+
+              {uploadedFiles.length > 0 && (
+                <div className="bg-surface-tint rounded-lg p-4">
+                  <p className="text-xs text-text-muted uppercase tracking-wide mb-1">
+                    Attached Evidence ({uploadedFiles.length})
+                  </p>
+                  <div className="space-y-1 mt-1">
+                    {uploadedFiles.map((f, i) => (
+                      <p key={i} className="text-xs text-text-primary flex items-center gap-1.5">
+                        <Paperclip className="w-3 h-3 text-primary" /> {f.name}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
