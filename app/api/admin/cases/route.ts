@@ -26,24 +26,16 @@ export async function GET(request: NextRequest) {
     // Try live Firestore
     try {
       const db = getAdminDb();
-      let query: FirebaseFirestore.Query = db.collection('reports');
+      let snap: FirebaseFirestore.QuerySnapshot;
 
       // Superadmin sees all; regular authority sees only their department
-      if (user.role !== 'superadmin') {
-        query = query.where('routedTo', '==', user.department);
+      if (user.role === 'superadmin') {
+        snap = await db.collection('reports').get();
+      } else {
+        snap = await db.collection('reports').where('routedTo', '==', user.department).get();
       }
 
-      if (statusFilter) {
-        query = query.where('status', '==', statusFilter);
-      }
-
-      if (severityFilter) {
-        query = query.where('severity', '==', severityFilter);
-      }
-
-      const snap = await query.orderBy('createdAt', 'desc').limit(100).get();
-
-      reports = snap.docs.map((doc) => {
+      let fetchedReports = snap.docs.map((doc) => {
         const data = doc.data() as Report;
         return {
           id: doc.id,
@@ -63,6 +55,21 @@ export async function GET(request: NextRequest) {
           accessTokenHash: '', // Omit security token hash
         };
       });
+
+      // Filter in memory to avoid requiring complex multi-field composite indexes
+      if (statusFilter) {
+        fetchedReports = fetchedReports.filter((r) => r.status === statusFilter);
+      }
+      if (severityFilter) {
+        fetchedReports = fetchedReports.filter((r) => r.severity === severityFilter);
+      }
+
+      // Sort newest first
+      fetchedReports.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      reports = fetchedReports;
     } catch (dbErr) {
       console.error('[Firestore Query Error]:', dbErr);
       reports = [];

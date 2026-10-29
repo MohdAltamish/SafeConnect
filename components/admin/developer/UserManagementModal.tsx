@@ -4,12 +4,23 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { type Authority, DEPARTMENT } from '@/types';
-import { Users, UserPlus, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Users, UserPlus, Loader2, Check, AlertCircle, X, Lock } from 'lucide-react';
 
-export function UserManagementModal() {
+interface UserManagementModalProps {
+  isModal?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function UserManagementModal({
+  isModal = false,
+  isOpen = true,
+  onClose,
+}: UserManagementModalProps) {
   const [users, setUsers] = useState<Authority[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [department, setDepartment] = useState<string>(DEPARTMENT.INTERNAL_COMMITTEE);
   const [role, setRole] = useState<'authority' | 'superadmin'>('authority');
@@ -33,8 +44,12 @@ export function UserManagementModal() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen]);
+
+  if (isModal && !isOpen) return null;
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +61,11 @@ export function UserManagementModal() {
       return;
     }
 
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setIsProvisioning(true);
     try {
       const res = await fetch('/api/admin/developer/users', {
@@ -53,6 +73,7 @@ export function UserManagementModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
+          password: password.trim(),
           name: name.trim(),
           department,
           role,
@@ -64,8 +85,9 @@ export function UserManagementModal() {
         throw new Error(data.error || 'Failed to provision authority');
       }
 
-      setSuccess(`Successfully provisioned account for ${email}`);
+      setSuccess(`Account created for ${email}. They can now log in directly with their credentials.`);
       setEmail('');
+      setPassword('');
       setName('');
       fetchUsers();
     } catch (err) {
@@ -75,8 +97,8 @@ export function UserManagementModal() {
     }
   };
 
-  return (
-    <div className="rounded-2xl border border-border bg-surface p-5 space-y-4">
+  const content = (
+    <div className={`space-y-4 ${isModal ? 'bg-surface' : ''}`}>
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-primary" />
@@ -84,9 +106,20 @@ export function UserManagementModal() {
             Authority Account Provisioning & Roles
           </h3>
         </div>
-        <span className="text-xs text-text-muted font-mono">
-          {users.length} Active Authorities
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted font-mono">
+            {users.length} Active Authorities
+          </span>
+          {isModal && onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-tint transition-colors ml-2"
+              aria-label="Close dialog"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -105,7 +138,7 @@ export function UserManagementModal() {
 
       {/* Provision Form */}
       <form onSubmit={handleAddUser} className="p-4 rounded-xl bg-surface-tint border border-border/70 space-y-3">
-        <span className="text-xs font-semibold text-text-primary block flex items-center gap-1.5">
+        <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
           <UserPlus className="w-3.5 h-3.5 text-primary" /> Provision New Committee Member
         </span>
 
@@ -120,8 +153,26 @@ export function UserManagementModal() {
               placeholder="faculty.name@glbitm.ac.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-text-secondary mb-1">
+              Login Password (min 6 characters)
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                required
+                minLength={6}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary pl-7"
+              />
+              <Lock className="w-3 h-3 text-text-muted absolute left-2.5 top-2.5" />
+            </div>
           </div>
 
           <div>
@@ -134,7 +185,7 @@ export function UserManagementModal() {
               placeholder="Dr. Full Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -145,7 +196,7 @@ export function UserManagementModal() {
             <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value={DEPARTMENT.INTERNAL_COMMITTEE}>Internal Committee (IC) / Women Cell</option>
               <option value={DEPARTMENT.ANTI_RAGGING_CELL}>Anti-Ragging Committee</option>
@@ -155,17 +206,17 @@ export function UserManagementModal() {
             </select>
           </div>
 
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-[11px] font-medium text-text-secondary mb-1">
               Role Authority Level
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as 'authority' | 'superadmin')}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
-              <option value="authority">Standard Committee Authority</option>
-              <option value="superadmin">Superadmin / System Creator</option>
+              <option value="authority">Standard Committee Authority (Department-scoped triage)</option>
+              <option value="superadmin">Superadmin / System Creator (Full access to all cases)</option>
             </select>
           </div>
         </div>
@@ -174,7 +225,7 @@ export function UserManagementModal() {
           <Button
             type="submit"
             size="sm"
-            disabled={isProvisioning || !email || !name}
+            disabled={isProvisioning || !email || !name || password.length < 6}
             className="flex items-center gap-1.5 text-xs"
           >
             {isProvisioning && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -188,7 +239,7 @@ export function UserManagementModal() {
         <span className="text-xs font-semibold text-text-secondary block">
           Current Authorized Members
         </span>
-        <div className="divide-y divide-border/60 border border-border rounded-xl overflow-hidden max-h-56 overflow-y-auto">
+        <div className="divide-y divide-border/60 border border-border rounded-xl overflow-hidden max-h-52 overflow-y-auto">
           {isLoading && (
             <div className="p-4 text-center text-text-muted text-xs flex items-center justify-center gap-1.5">
               <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading authorities...
@@ -217,6 +268,22 @@ export function UserManagementModal() {
           ))}
         </div>
       </div>
+    </div>
+  );
+
+  if (isModal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-5 space-y-4">
+      {content}
     </div>
   );
 }

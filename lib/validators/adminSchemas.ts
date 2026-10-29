@@ -97,6 +97,7 @@ export const provisionAuthoritySchema = z.object({
       (email) => email.toLowerCase().endsWith('@glbitm.ac.in'),
       'Authority accounts must use the official institutional domain (@glbitm.ac.in)'
     ),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   department: z.enum(departmentValues, {
     message: 'Invalid department',

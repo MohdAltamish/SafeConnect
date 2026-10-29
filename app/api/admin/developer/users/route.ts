@@ -57,19 +57,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, name, department, role, active } = result.data;
+    const { email, password, name, department, role, active } = result.data;
     const db = getAdminDb();
     const adminAuth = getAdminAuth();
 
-    // Check if Firebase Auth user exists, or create placeholder
+    // Check if Firebase Auth user exists, or create new with password
     let targetUid: string;
     try {
       const existingUser = await adminAuth.getUserByEmail(email);
       targetUid = existingUser.uid;
+      await adminAuth.updateUser(targetUid, {
+        password,
+        displayName: name,
+      });
     } catch {
-      // Create user in Firebase Auth if not already existing
+      // Create user in Firebase Auth with assigned password
       const newUser = await adminAuth.createUser({
         email,
+        password,
         displayName: name,
         emailVerified: true,
       });

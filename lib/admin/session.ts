@@ -41,46 +41,33 @@ const DEV_MOCK_AUTHORITIES: Record<string, AuthenticatedUser> = {
 };
 
 /**
- * Extracts and verifies the authenticated authority from cookies or authorization header.
+ * Verifies session cookie or mock key and returns the AuthenticatedUser
  */
-export async function getAuthenticatedAuthority(
-  request: NextRequest
+export async function getSessionUser(
+  sessionCookie?: string | null,
+  mockKey?: string | null
 ): Promise<AuthenticatedUser | null> {
   const isDev = process.env.NODE_ENV !== 'production';
 
-  // 1. Check for development mock authorization headers or cookies in local dev/test
-  const mockHeader = request.headers.get('x-dev-mock-auth');
-  const mockCookie = request.cookies.get('__dev_mock')?.value;
-  const mockKey = mockHeader || mockCookie;
-
+  // 1. Dev mock quick switch
   if (mockKey && DEV_MOCK_AUTHORITIES[mockKey]) {
     return DEV_MOCK_AUTHORITIES[mockKey];
   }
 
-  // 2. Extract session cookie or bearer token
-  const sessionCookie = request.cookies.get('__session')?.value;
-  const authHeader = request.headers.get('Authorization');
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  const token = sessionCookie || bearerToken;
-
-  if (!token) {
-    // If in dev mode and no session is provided, default to superadmin mock if configured
+  // 2. No session token provided
+  if (!sessionCookie) {
     if (isDev && process.env.ENABLE_DEV_AUTO_AUTH === 'true') {
       return DEV_MOCK_AUTHORITIES.superadmin;
     }
     return null;
   }
 
-  // 3. Verify token with Firebase Admin
+  // 3. Verify session cookie or id token
   try {
     const adminAuth = getAdminAuth();
-    let decodedToken;
-
-    if (sessionCookie) {
-      decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true).catch(() => null);
-    }
-    if (!decodedToken && token) {
-      decodedToken = await adminAuth.verifyIdToken(token).catch(() => null);
+    let decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true).catch(() => null);
+    if (!decodedToken) {
+      decodedToken = await adminAuth.verifyIdToken(sessionCookie).catch(() => null);
     }
 
     if (!decodedToken) {
@@ -88,7 +75,8 @@ export async function getAuthenticatedAuthority(
     }
 
     const email = decodedToken.email || '';
-    const isDomainAllowed = email.toLowerCase().endsWith('@glbitm.ac.in') || decodedToken.role === 'superadmin';
+    const isDomainAllowed =
+      email.toLowerCase().endsWith('@glbitm.ac.in') || decodedToken.role === 'superadmin';
 
     if (!isDomainAllowed) {
       console.warn(`[SafeConnect Auth] Rejected non-institutional email: ${email}`);
@@ -115,7 +103,6 @@ export async function getAuthenticatedAuthority(
       };
     }
 
-    // If custom claim superadmin exists, allow even if authority doc is being seeded
     if (decodedToken.role === 'superadmin') {
       return {
         uid: decodedToken.uid,
@@ -132,6 +119,28 @@ export async function getAuthenticatedAuthority(
     console.error('[SafeConnect Auth] Session verification error:', error instanceof Error ? error.message : error);
     return null;
   }
+}
+
+/**
+ * Extracts and verifies the authenticated authority from cookies or authorization header.
+ */
+export async function getAuthenticatedAuthority(
+  request: NextRequest
+): Promise<AuthenticatedUser | null> {
+  const mockHeader = request.headers.get('x-dev-mock-auth');
+  const mockCookie = request.cookies.get('__dev_mock')?.value;
+  const mockKey = mockHeader || mockCookie;
+
+  if (mockKey && DEV_MOCK_AUTHORITIES[mockKey]) {
+    return DEV_MOCK_AUTHORITIES[mockKey];
+  }
+
+  const sessionCookie = request.cookies.get('__session')?.value;
+  const authHeader = request.headers.get('Authorization');
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+  const token = sessionCookie || bearerToken;
+
+  return getSessionUser(token, mockKey);
 }
 
 /**
