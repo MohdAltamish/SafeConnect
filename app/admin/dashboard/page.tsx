@@ -1,25 +1,82 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { CaseTable } from '@/components/admin/CaseTable';
 import { Card } from '@/components/ui/Card';
+import { type Report } from '@/types';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
-export const metadata = {
-  title: 'Dashboard — SafeConnect Admin',
-};
-
-/**
- * Authority dashboard per Design.md §7:
- * Table/list of case cards, filter by status, sorted newest first.
- * Placeholder for Phase 4 (FR4).
- */
 export default function AdminDashboardPage() {
+  const [cases, setCases] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCases = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/cases');
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch cases');
+      }
+      setCases(data.reports || data.cases || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error fetching cases');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCases();
+  }, []);
+
   return (
-    <main className="min-h-screen bg-surface-tint">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-text-primary mb-6">Dashboard</h1>
-        <Card padding="lg">
-          <p className="text-sm text-text-muted text-center py-8">
-            Authority dashboard will be implemented in Phase 4.
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Grievance Redressal Triage
+          </h1>
+          <p className="text-xs text-text-muted mt-0.5">
+            AICTE 2016 Statutory Hearing & Investigation Desk
           </p>
-        </Card>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchCases}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 text-xs h-8"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh Queue
+          </Button>
+        </div>
       </div>
-    </main>
+
+      {error && (
+        <div className="p-4 rounded-xl bg-error-50 border border-error/20 flex items-start gap-2.5 text-xs text-error">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {isLoading ? (
+        <Card padding="lg">
+          <div className="flex flex-col items-center justify-center py-12 text-text-muted space-y-3">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <p className="text-xs">Loading departmental grievances...</p>
+          </div>
+        </Card>
+      ) : (
+        <CaseTable cases={cases} />
+      )}
+    </div>
   );
 }
